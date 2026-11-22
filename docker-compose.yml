@@ -5,6 +5,12 @@ services:
     restart: unless-stopped
     ports:
       - "8000:8000"
+    volumes:
+      - ./app:/app/app
+      - ./migrations:/app/migrations
+      - ./alembic.ini:/app/alembic.ini
+      - ./tests:/app/tests
+      - ./pyproject.toml:/app/pyproject.toml
     env_file:
       - .env
     depends_on:
@@ -32,13 +38,15 @@ services:
   keycloak:
     image: quay.io/keycloak/keycloak:latest
     container_name: spendwise-keycloak
-    command: start-dev
+    command: start-dev --import-realm
     restart: unless-stopped
     environment:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
     ports:
       - "8080:8080"
+    volumes:
+      - ./keycloak:/opt/keycloak/data/import
 
 volumes:
   postgres_data:

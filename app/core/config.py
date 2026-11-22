@@ -8,7 +8,7 @@ class Settings(BaseSettings):
 
     DATABASE_URL: str = "postgresql+asyncpg://spendwise:spendwise@db:5432/spendwise"
 
-    KEYCLOAK_ISSUER: str = "http://keycloak:8080/realms/spendwise"
+    KEYCLOAK_ISSUER: str = "http://localhost:8080/realms/spendwise"
     KEYCLOAK_JWKS_URL: str = (
         "http://keycloak:8080/realms/spendwise/protocol/openid-connect/certs"
     )
