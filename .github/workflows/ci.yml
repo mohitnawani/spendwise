@@ -1,0 +1,79 @@
+name: SpendWise CI
+
+on:
+  push:
+    branches: [ main, feature/** ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  lint-and-test:
+    name: Lint, Type Check & Test
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: spendwise
+          POSTGRES_PASSWORD: spendwise
+          POSTGRES_DB: spendwise
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Code Formatting Check (Ruff)
+        run: ruff format --check .
+
+      - name: Code Linter Check (Ruff)
+        run: ruff check .
+
+      - name: Static Type Checking (Mypy)
+        run: mypy app tests
+
+      - name: Run Database Migrations (Alembic)
+        env:
+          DATABASE_URL: postgresql+asyncpg://spendwise:spendwise@localhost:5432/spendwise
+        run: alembic upgrade head
+
+      - name: Run Pytest Test Suite
+        env:
+          DATABASE_URL: postgresql+asyncpg://spendwise:spendwise@localhost:5432/spendwise
+          APP_ENV: testing
+          KEYCLOAK_ISSUER: http://localhost:8080/realms/spendwise
+          KEYCLOAK_JWKS_URL: http://localhost:8080/realms/spendwise/protocol/openid-connect/certs
+          KEYCLOAK_AUDIENCE: spendwise-api
+          FRANKFURTER_BASE_URL: https://api.frankfurter.dev
+        run: pytest -vv
+
+  docker-build:
+    name: Verify Docker Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: actions/setup-buildx-action@v3
+
+      - name: Build Docker Image
+        run: docker build . --file Dockerfile -t spendwise-api:ci
