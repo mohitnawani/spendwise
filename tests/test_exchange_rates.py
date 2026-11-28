@@ -116,7 +116,7 @@ async def test_convert_upstream_timeout_returns_503(client: AsyncClient) -> None
             headers=headers,
         )
         assert resp.status_code == 503
-        assert resp.json()["detail"] == "Currency exchange service timed out"
+        assert resp.json()["error"]["message"] == "Currency exchange service timed out"
 
 
 @pytest.mark.asyncio
@@ -136,7 +136,10 @@ async def test_convert_upstream_connection_failure_returns_502(
             headers=headers,
         )
         assert resp.status_code == 502
-        assert resp.json()["detail"] == "Unable to connect to upstream currency service"
+        assert (
+            resp.json()["error"]["message"]
+            == "Unable to connect to upstream currency service"
+        )
 
 
 @pytest.mark.asyncio
@@ -162,7 +165,7 @@ async def test_convert_unsupported_currency_pair_returns_400(
             headers=headers,
         )
         assert resp.status_code == 400
-        assert resp.json()["detail"] == "Unsupported currency pair"
+        assert resp.json()["error"]["message"] == "Unsupported currency pair"
 
 
 @pytest.mark.asyncio
@@ -188,7 +191,7 @@ async def test_convert_upstream_server_error_returns_502(
             headers=headers,
         )
         assert resp.status_code == 502
-        assert resp.json()["detail"] == "Upstream currency service error"
+        assert resp.json()["error"]["message"] == "Upstream currency service error"
 
 
 @pytest.mark.asyncio
@@ -216,5 +219,6 @@ async def test_convert_malformed_upstream_payload_returns_502(
         )
         assert resp.status_code == 502
         assert (
-            resp.json()["detail"] == "Malformed response from upstream currency service"
+            resp.json()["error"]["message"]
+            == "Malformed response from upstream currency service"
         )

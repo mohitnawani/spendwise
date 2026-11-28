@@ -139,7 +139,7 @@ async def test_category_delete_conflict_when_referenced(
         headers=headers,
     )
     assert del_cat_resp.status_code == 409
-    assert "still referenced by expenses" in del_cat_resp.json()["detail"]
+    assert "still referenced by expenses" in del_cat_resp.json()["error"]["message"]
 
     # Delete the referencing expense first
     del_exp_resp = await client.delete(
