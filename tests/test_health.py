@@ -53,6 +53,8 @@ async def test_ready_database_unavailable(client: AsyncClient) -> None:
     try:
         response = await client.get("/ready")
         assert response.status_code == 503
-        assert response.json() == {"detail": "Database unavailable"}
+        error_data = response.json()["error"]
+        assert error_data["code"] == "SERVICE_UNAVAILABLE"
+        assert error_data["message"] == "Database unavailable"
     finally:
         app.dependency_overrides.pop(get_db, None)

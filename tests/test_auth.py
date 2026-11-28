@@ -69,7 +69,7 @@ def create_token(
 async def test_missing_token_returns_401(client: AsyncClient) -> None:
     response = await client.get("/api/v1/auth/me")
     assert response.status_code == 401
-    assert "Missing Authorization header" in response.json()["detail"]
+    assert "Missing Authorization header" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -79,7 +79,7 @@ async def test_invalid_scheme_returns_401(client: AsyncClient) -> None:
         headers={"Authorization": "Basic 12345"},
     )
     assert response.status_code == 401
-    assert "Bearer token required" in response.json()["detail"]
+    assert "Bearer token required" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -99,7 +99,7 @@ async def test_expired_token_returns_401(client: AsyncClient) -> None:
         headers={"Authorization": f"Bearer {expired_token}"},
     )
     assert response.status_code == 401
-    assert "expired" in response.json()["detail"].lower()
+    assert "expired" in response.json()["error"]["message"].lower()
 
 
 @pytest.mark.asyncio
@@ -110,7 +110,7 @@ async def test_wrong_issuer_returns_401(client: AsyncClient) -> None:
         headers={"Authorization": f"Bearer {bad_iss_token}"},
     )
     assert response.status_code == 401
-    assert "claim validation failed" in response.json()["detail"]
+    assert "claim validation failed" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -121,7 +121,7 @@ async def test_wrong_audience_returns_401(client: AsyncClient) -> None:
         headers={"Authorization": f"Bearer {bad_aud_token}"},
     )
     assert response.status_code == 401
-    assert "claim validation failed" in response.json()["detail"]
+    assert "claim validation failed" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
@@ -132,7 +132,7 @@ async def test_missing_kid_header_returns_401(client: AsyncClient) -> None:
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 401
-    assert "missing key identifier" in response.json()["detail"].lower()
+    assert "missing key identifier" in response.json()["error"]["message"].lower()
 
 
 @pytest.mark.asyncio
@@ -156,7 +156,7 @@ async def test_user_cannot_access_admin_route_returns_403(client: AsyncClient) -
         headers={"Authorization": f"Bearer {token}"},
     )
     assert response.status_code == 403
-    assert "ADMIN" in response.json()["detail"]
+    assert "ADMIN" in response.json()["error"]["message"]
 
 
 @pytest.mark.asyncio
